@@ -1,0 +1,15 @@
+{
+  "name": "zillow",
+  "version": "0.0.1",
+  "description": "zillow",
+  "main": "zillow.js",
+  "dependencies": {
+    "cheerio": "~0.17.0",
+    "humanize": "0.0.9",
+    "json2csv": "~2.2.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
