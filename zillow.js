@@ -1,11 +1,13 @@
 'use strict;'
 
 // CONFIG
-var daysOnZillow = 1;
+const nextPageDelay = 5000;
+const fetchNextPages = true; 
+const daysOnZillow = 7;
 //only options availiable on the site are valid (1 ok, 7 ok, 2 not ok)
 
 // Note, sometimes you will need to recopy those urls from the browser (when getting HTTP 301)
-var places = [
+const places = [
 	"http://www.zillow.com/homes/for_sale/Essex-County-NJ/list/fsba,fsbo,new_lt/house,condo,apartment_duplex,townhouse_type/504_rid/570-761_mp/"+daysOnZillow+"_days/40.895349,-73.989143,40.687407,-74.501381_rect/0_mmm/",
 	"http://www.zillow.com/homes/for_sale/Union-County-NJ/list/fsba,fsbo,new_lt/house,condo,apartment_duplex,townhouse_type/771_rid/570-761_mp/"+daysOnZillow+"_days/40.739229,-74.136702,40.591903,-74.46335_rect/0_mmm/",
 	"http://www.zillow.com/homes/for_sale/Bergen-County-NJ/list/fsba,fsbo,new_lt/house,condo,apartment_duplex,townhouse_type/874_rid/571-761_mp/"+daysOnZillow+"_days/41.133995,-73.893978,40.762114,-74.272483_rect/0_mmm/",
@@ -17,8 +19,8 @@ var places = [
 
 var http = require("http"),
 cheerio = require("cheerio"),
-fs = require('fs'),
-j = require('jquery');
+fs = require('fs');
+//j = require('jquery');
 
 var json2csv = require('json2csv');
 var humanize = require('humanize');
@@ -66,7 +68,8 @@ function appendHouseToCSVFile(obj) {
 		if (err) console.log(err);
 		fs.appendFile(file_name, csv, function (err) {
 			if (err) throw err;
-			console.log('Saved house in: ' + obj.place);
+			//console.log('Saved house in: ' + obj.place);
+			process.stdout.write('.');
 		});
 	});
 
@@ -96,11 +99,11 @@ places.forEach(function processUrl(url, index) {
 
 		console.log(placeName + " has " + houseLinks.length + " houses, url: " + url);
 		if (houseLinks.length > 25) {
-			console.log(placeName + " has more houses...");
 			var $nextLink = $('#search-pagination-wrapper li.zsg-pagination-next a');
 			//console.log($nextLink.length);
 			if ($nextLink.length) {
-				processUrl('http://www.zillow.com' + $nextLink.attr('href'));
+				console.log(placeName + " has more houses");
+				if (fetchNextPages) setTimeout(processUrl,nextPageDelay,'http://www.zillow.com' + $nextLink.attr('href'));
 
 			}
 
@@ -118,7 +121,7 @@ places.forEach(function processUrl(url, index) {
 
 			// Download the specific house page
 			download('http://www.zillow.com' + fullLink, function (data) {
-
+				if (!data) console.log('\r\x1b[36mWARNING:got empty data (downloading a house)\x1b[0m',fullLink);
 				var l = cheerio.load(data);
 
 				// Get the address
@@ -153,6 +156,7 @@ places.forEach(function processUrl(url, index) {
 				if (linkToTax) {
 					// Download the Tax info
 					download('http://www.zillow.com' + linkToTax, function (data) {
+						if (!data) console.log('\r\x1b[36mWARNING: got empty data (downloading tax info)\x1b[0m',linkToTax);
 
 						var d = JSON.parse(data);
 						//console.log('data length ',data.length);

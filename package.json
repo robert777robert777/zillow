@@ -1,6 +1,6 @@
 {
   "name": "zillow",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "zillow",
   "main": "zillow.js",
   "dependencies": {
